@@ -1,0 +1,29 @@
+{
+  "name": "boxturtle",
+  "version": "1.0.0",
+  "description": "boxturtle allows you to generate laser cutter patterns for different kinds of boxes with rounded corners. Simply specify the boxes parameters and generate your svg plans.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pungitius/boxturtle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pungitius/boxturtle/issues"
+  },
+  "homepage": "https://github.com/Pungitius/boxturtle#readme",
+  "devDependencies": {
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
+  },
+  "dependencies": {
+    "@svgdotjs/svg.js": "^3.1.2",
+    "dat.gui": "^0.7.9"
+  }
+}
