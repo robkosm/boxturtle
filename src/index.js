@@ -13,9 +13,9 @@ class simpleSurfaceDrawer {
         this.bendCircumference = (2 * Math.PI * this.bendRadius) / 4;
         this.slitsPerBend = Math.floor(settings.slitsPerRotation / 4);
 
-        this.tailLength = settings.tailLength
-        this.tailWidth = settings.tailWidth
-        this.tailTaperRatio = settings.taperRatio
+        this.tailLength = settings.tailLength;
+        this.tailWidth = settings.tailWidth;
+        this.tailTaperRatio = settings.taperRatio;
 
         this.cutColor = settings.cutColor;
         this.engraveColor = settings.engraveDeepColor;
@@ -23,47 +23,7 @@ class simpleSurfaceDrawer {
         this.xPosition = 0;
     }
 
-    drawBend() {
-        const step = this.slitsPerBend - 1;
-        for (let i = 0; i < this.slitsPerBend; i++) {
-            const slitPosition =
-                (i * this.bendCircumference) / (this.slitsPerBend - 1);
-            draw.line(slitPosition, 0, slitPosition, this.height)
-                .stroke({ color: this.engraveColor, width: 1 })
-                .transform({ translateX: this.xPosition });
-        }
-
-        this.xPosition += this.bendCircumference;
-    }
-
-    drawLeftHalfFace() {
-        this.xPosition += this.sideLength / 2 - this.bendRadius;
-
-        // seems a bit hacky, but arcs are not supported by svg.js outside of paths
-
-        // for (let y = 0; y < this.height; y += 35) {
-        //     let arcString = "";
-        //     const test = ["M", 5 + this.xPosition, 9 + y, "A", 10, 10, 0, 1, 1, 5 + this.xPosition, -9 + y]; //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-        //     test.forEach((e) => (arcString = arcString.concat(" ", e)));
-        //     console.log(arcString)
-        //     let arc = draw.path(arcString);
-        //     arc.fill("none")
-        //     arc.stroke({ color: this.cutColor, width: 1 })
-        // }
-
-        // for (let y = 17.5; y < this.height; y += 35) {
-        //     let arcString = "";
-        //     const test = ["M", -5 + this.xPosition + 10, -9 + y, "A", 10, 10, 0, 1, 1, -5 + this.xPosition + 10, 9 + y]; //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-        //     test.forEach((e) => (arcString = arcString.concat(" ", e)));
-        //     console.log(arcString)
-        //     let arc = draw.path(arcString);
-        //     arc.fill("none")
-        //     arc.stroke({ color: this.cutColor, width: 1 })
-        // }
-
-        const amplitude = this.tailLength
-        const taperRatio = this.tailTaperRatio
-        const width = this.tailWidth
+    drawBezierDovetailJoint(amplitude, width, taperRatio) {
         const taper = taperRatio * width;
 
         let bezierArray = [];
@@ -73,7 +33,7 @@ class simpleSurfaceDrawer {
 
         for (let y = 0; y < this.height; y += width) {
             // control1_x control1_y control2_x control2_y anchor_x anchor_y
-            const halfWidth = width/2
+            const halfWidth = width / 2;
 
             bezierArray.push("C");
             bezierArray.push(-amplitude + this.xPosition);
@@ -123,12 +83,89 @@ class simpleSurfaceDrawer {
         // })
     }
 
+    drawBend() {
+        const step = this.slitsPerBend - 1;
+        for (let i = 0; i < this.slitsPerBend; i++) {
+            const slitPosition =
+                (i * this.bendCircumference) / (this.slitsPerBend - 1);
+            draw.line(slitPosition, 0, slitPosition, this.height)
+                .stroke({ color: this.engraveColor, width: 1 })
+                .transform({ translateX: this.xPosition });
+        }
+
+        this.xPosition += this.bendCircumference;
+    }
+
+    drawLeftHalfFace() {
+        this.xPosition += this.sideLength / 2 - this.bendRadius;
+
+        // seems a bit hacky, but arcs are not supported by svg.js outside of paths
+
+        // for (let y = 0; y < this.height; y += 35) {
+        //     let arcString = "";
+        //     const test = ["M", 5 + this.xPosition, 9 + y, "A", 10, 10, 0, 1, 1, 5 + this.xPosition, -9 + y]; //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+        //     test.forEach((e) => (arcString = arcString.concat(" ", e)));
+        //     console.log(arcString)
+        //     let arc = draw.path(arcString);
+        //     arc.fill("none")
+        //     arc.stroke({ color: this.cutColor, width: 1 })
+        // }
+
+        // for (let y = 17.5; y < this.height; y += 35) {
+        //     let arcString = "";
+        //     const test = ["M", -5 + this.xPosition + 10, -9 + y, "A", 10, 10, 0, 1, 1, -5 + this.xPosition + 10, 9 + y]; //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+        //     test.forEach((e) => (arcString = arcString.concat(" ", e)));
+        //     console.log(arcString)
+        //     let arc = draw.path(arcString);
+        //     arc.fill("none")
+        //     arc.stroke({ color: this.cutColor, width: 1 })
+        // }
+
+        this.drawBezierDovetailJoint(
+            this.tailLength,
+            this.tailWidth,
+            this.tailTaperRatio
+        );
+    }
+
     drawRightHalfFace() {
+        this.xPosition += this.tailLength;
+        this.drawBezierDovetailJoint(
+            this.tailLength,
+            this.tailWidth,
+            this.tailTaperRatio
+        );
         this.xPosition += this.sideLength / 2 - this.bendRadius;
     }
 
     drawFullFace() {
         this.xPosition += this.sideLength - 2 * this.bendRadius;
+    }
+
+    drawOutlines() {
+        // draw.rect(4 * (this.bendCircumference + this.sideLength - 2 * this.bendRadius) + this.tailLength, this.height)
+        //     .fill("none")
+        //     .stroke({ color: this.cutColor, width: 1 });
+        draw.line(
+            0,
+            0,
+            4 *
+                (this.bendCircumference +
+                    this.sideLength -
+                    2 * this.bendRadius) +
+                2 * this.tailLength,
+            0
+        ).stroke({ color: this.cutColor, width: 1 });
+        draw.line(
+            0,
+            this.height,
+            4 *
+                (this.bendCircumference +
+                    this.sideLength -
+                    2 * this.bendRadius) +
+                2 * this.tailLength,
+            this.height
+        ).stroke({ color: this.cutColor, width: 1 });
     }
 
     drawSurface() {
@@ -141,13 +178,28 @@ class simpleSurfaceDrawer {
         this.drawFullFace();
         this.drawBend();
         this.drawLeftHalfFace();
-        draw.rect(4 * (this.bendCircumference + this.sideLength - 2 * this.bendRadius), this.height)
-            .fill("none")
-            .stroke({ color: this.cutColor, width: 1 });
+        this.drawOutlines();
     }
 }
 
-let draw = SVG().addTo("body").size(1000, 1000);
+// https://stackoverflow.com/questions/23218174/how-do-i-save-export-an-svg-file-after-creating-an-svg-with-d3-js-ie-safari-an
+function saveSvg(svgEl, name) {
+    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    var svgData = svgEl.outerHTML;
+    var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+    var svgBlob = new Blob([preface, svgData], {
+        type: "image/svg+xml;charset=utf-8",
+    });
+    var svgUrl = URL.createObjectURL(svgBlob);
+    var downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = name;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
+let draw = SVG().addTo("#svg").size(1000, 1000);
 
 let settings = {
     // lasercutter
@@ -158,7 +210,7 @@ let settings = {
     // dovetail joints
     tailLength: 10,
     tailWidth: 40,
-    taperRatio: .8,
+    taperRatio: 0.8,
 
     // box
     boxTopW: 150,
@@ -176,11 +228,14 @@ let settings = {
 
     // buttons
     "apply settings": function () {
-        draw.clear()
-        surfaceDrawer = new simpleSurfaceDrawer(settings)
+        draw.clear();
+        surfaceDrawer = new simpleSurfaceDrawer(settings);
         surfaceDrawer.drawSurface();
     },
-};
+    "download svg": function () {
+        saveSvg(document.getElementById("svg").firstChild, "boxturtle_export.svg")
+    }
+ };
 
 let surfaceDrawer = new simpleSurfaceDrawer(settings);
 surfaceDrawer.drawSurface();
@@ -219,6 +274,7 @@ function makeGUI() {
 
     let buttonFolder = gui.addFolder("Buttons");
     buttonFolder.add(settings, "apply settings");
+    buttonFolder.add(settings, "download svg");
     buttonFolder.open();
 
     gui.open();
