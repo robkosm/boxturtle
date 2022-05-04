@@ -199,6 +199,67 @@ class simpleSurfaceDrawer {
 
     drawLeftHalfFace() {
         this.xPosition += this.sideLength / 2 - this.bendRadius;
+
+        // seems a bit hacky, but arcs are not supported by svg.js outside of paths
+
+        // for (let y = 0; y < this.height; y += 35) {
+        //     let arcString = "";
+        //     const test = ["M", 5 + this.xPosition, 9 + y, "A", 10, 10, 0, 1, 1, 5 + this.xPosition, -9 + y]; //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+        //     test.forEach((e) => (arcString = arcString.concat(" ", e)));
+        //     console.log(arcString)
+        //     let arc = draw.path(arcString);
+        //     arc.fill("none")
+        //     arc.stroke({ color: this.cutColor, width: 1 })
+        // }
+
+        // for (let y = 17.5; y < this.height; y += 35) {
+        //     let arcString = "";
+        //     const test = ["M", -5 + this.xPosition + 10, -9 + y, "A", 10, 10, 0, 1, 1, -5 + this.xPosition + 10, 9 + y]; //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+        //     test.forEach((e) => (arcString = arcString.concat(" ", e)));
+        //     console.log(arcString)
+        //     let arc = draw.path(arcString);
+        //     arc.fill("none")
+        //     arc.stroke({ color: this.cutColor, width: 1 })
+        // }
+
+        const amplitude = 20
+        
+        const width = 40
+        const taper = .8 * width;
+
+        let bezierArray = [];
+        bezierArray.push("M");
+        bezierArray.push(-amplitude + this.xPosition);
+        bezierArray.push(0);
+
+        for (let y = 0; y < this.height; y += width) {
+            // control1_x control1_y control2_x control2_y anchor_x anchor_y
+            const halfWidth = width/2
+
+            bezierArray.push("C");
+            bezierArray.push(-amplitude + this.xPosition);
+            bezierArray.push(y + taper);
+            bezierArray.push(amplitude + this.xPosition);
+            bezierArray.push(y + halfWidth - taper);
+            bezierArray.push(amplitude + this.xPosition);
+            bezierArray.push(y + halfWidth);
+
+            bezierArray.push("C");
+            bezierArray.push(amplitude + this.xPosition);
+            bezierArray.push(y + halfWidth + taper);
+            bezierArray.push(-amplitude + this.xPosition);
+            bezierArray.push(y + width - taper);
+            bezierArray.push(-amplitude + this.xPosition);
+            bezierArray.push(y + width);
+        }
+
+        let bezierString = "";
+        bezierArray.forEach(
+            (e) => (bezierString = bezierString.concat(" ", e))
+        );
+        let bezier = draw.path(bezierString);
+        bezier.fill("none");
+        bezier.stroke({ color: this.cutColor, width: 1 });
     }
 
     drawRightHalfFace() {
