@@ -2,7 +2,7 @@ import { Polygon, SVG } from "@svgdotjs/svg.js";
 import * as dat from "dat.gui";
 import * as vec2 from "gl-vec2";
 
-let draw = SVG().addTo("body").size(800, 800);
+let draw = SVG().addTo("body").size(1000, 1000);
 
 let settings = {
     // lasercutter
@@ -11,15 +11,15 @@ let settings = {
     engraveShallowColor: "#FF00FF",
 
     // box
-    boxTopW: 10,
+    boxTopW: 150,
     boxTopH: 10,
     boxBottomW: 10,
     boxBottomH: 10,
-    boxHeight: 20,
+    boxHeight: 400,
     boxShiftX: 0,
     boxShiftY: 0,
 
-    topRadius: 3,
+    topRadius: 30,
     bottomRadius: 3,
     minBendRadius: 1,
     slitsPerRotation: 40,
@@ -154,14 +154,76 @@ class shiftedSurfaceDrawer {
             scale: 1,
         });
 
-        let arrow = draw.line(
-            this.nextSegmentPosition[0],
-            this.nextSegmentPosition[1],
-            this.nextSegmentPosition[0] +
-                100 * Math.cos(this.nextSegmentRotation),
-            this.nextSegmentPosition[1] +
-                100 * Math.sin(this.nextSegmentRotation)
-        ).stroke({ color: 'blue', width: 5 });
+        let arrow = draw
+            .line(
+                this.nextSegmentPosition[0],
+                this.nextSegmentPosition[1],
+                this.nextSegmentPosition[0] +
+                    100 * Math.cos(this.nextSegmentRotation),
+                this.nextSegmentPosition[1] +
+                    100 * Math.sin(this.nextSegmentRotation)
+            )
+            .stroke({ color: "blue", width: 5 });
     }
 }
 
+// extrusion of a square with equal rounded corners
+class simpleSurfaceDrawer {
+    constructor(settings) {
+        // TODO: insert guard clauses for settings
+
+        this.sideLength = settings.boxTopW;
+        this.height = settings.boxHeight;
+        this.bendRadius = settings.topRadius;
+        this.bendCircumference = (2 * Math.PI * this.bendRadius) / 4;
+        this.slitsPerBend = Math.floor(settings.slitsPerRotation / 4);
+
+        this.cutColor = settings.cutColor;
+        this.engraveColor = settings.engraveDeepColor;
+
+        this.xPosition = 0;
+    }
+
+    drawBend() {
+        const step = this.slitsPerBend - 1;
+        for (let i = 0; i < this.slitsPerBend; i++) {
+            const slitPosition =
+                (i * this.bendCircumference) / (this.slitsPerBend - 1);
+            draw.line(slitPosition, 0, slitPosition, this.height)
+                .stroke({ color: this.engraveColor, width: 1 })
+                .transform({ translateX: this.xPosition });
+        }
+
+        this.xPosition += this.bendCircumference;
+    }
+
+    drawLeftHalfFace() {
+        this.xPosition += this.sideLength / 2 - this.bendRadius;
+    }
+
+    drawRightHalfFace() {
+        this.xPosition += this.sideLength / 2 - this.bendRadius;
+    }
+
+    drawFullFace() {
+        this.xPosition += this.sideLength - 2 * this.bendRadius;
+    }
+
+    drawSurface() {
+        this.drawRightHalfFace();
+        this.drawBend();
+        this.drawFullFace();
+        this.drawBend();
+        this.drawFullFace();
+        this.drawBend();
+        this.drawFullFace();
+        this.drawBend();
+        this.drawLeftHalfFace();
+        draw.rect(4 * (this.bendCircumference + this.sideLength - 2 * this.bendRadius), this.height)
+            .fill("none")
+            .stroke({ color: this.cutColor, width: 1 });
+    }
+}
+
+let ssD = new simpleSurfaceDrawer(settings);
+ssD.drawSurface();
