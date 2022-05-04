@@ -1,8 +1,8 @@
-import { SVG } from "@svgdotjs/svg.js";
+import { Polygon, SVG } from "@svgdotjs/svg.js";
 import * as dat from "dat.gui";
+import * as vec2 from "gl-vec2";
 
-let draw = SVG().addTo("body").size(300, 300);
-let rect = draw.rect(100, 100).attr({ fill: "#f06" });
+let draw = SVG().addTo("body").size(800, 800);
 
 let settings = {
     // lasercutter
@@ -65,3 +65,103 @@ function makeGUI() {
 }
 
 makeGUI();
+
+class shiftedSurfaceDrawer {
+    constructor() {
+        this.nextSegmentPosition = vec2.fromValues(100, 100);
+        this.nextSegmentRotation = 0; // degrees
+    }
+
+    drawSurface() {
+        // draw Face
+        // element.transform({
+        //     rotate: 125,
+        //     translateX: 50,
+        //     translateY: 100,
+        //     scale: 3
+        //   })
+        // draw Bend
+        // draw Face
+        // draw Bend
+        // draw Face
+        // draw Bend
+        // draw Face
+        // draw Bend
+    }
+
+    drawTrapezium(topWidth, bottomWidth, height, bottomShift) {
+        let vertices = [];
+
+        vertices.push([topWidth, 0]); // top right
+        vertices.push([0, 0]); // top left
+        vertices.push([(topWidth - bottomWidth) / 2 + bottomShift, height]); // bottom left
+        vertices.push([
+            bottomWidth - (topWidth - bottomWidth) / 2 + bottomShift,
+            height,
+        ]); // bottom right
+
+        let leftSegment = vec2.create();
+        vec2.sub(
+            leftSegment,
+            vec2.fromValues((topWidth - bottomWidth) / 2 + bottomShift, height),
+            vec2.fromValues(0, 0)
+        );
+        const leftSideAngle =
+            (Math.acos(leftSegment[1] / vec2.length(leftSegment)) * 360) /
+            Math.PI;
+
+        let rightSegment = vec2.create();
+        vec2.sub(
+            rightSegment,
+            vec2.fromValues(
+                bottomWidth - (topWidth - bottomWidth) / 2 + bottomShift,
+                height
+            ),
+            vec2.fromValues(topWidth, 0)
+        );
+        const rightSideAngle =
+            (Math.acos(rightSegment[1] / vec2.length(rightSegment)) * 360) /
+            Math.PI;
+
+        const angleBetweenSides = leftSideAngle - rightSideAngle;
+
+        let poly = draw
+            .polygon("0,0 100,50 50,100")
+            .fill("red")
+            .stroke({ width: 1 });
+        poly.plot(vertices);
+        poly.transform({
+            rotate: this.nextSegmentRotation + leftSideAngle,
+            translateX: this.nextSegmentPosition[0],
+            translateY: this.nextSegmentPosition[1],
+            scale: 1,
+        });
+
+        vec2.add(
+            this.nextSegmentPosition,
+            this.nextSegmentPosition,
+            vec2.fromValues(topWidth, 0)
+        );
+        this.nextSegmentRotation += angleBetweenSides;
+    }
+
+    drawNextSegmentTransform() {
+        let ellipse = draw.ellipse(10, 10).fill("green");
+        ellipse.transform({
+            rotate: this.nextSegmentRotation,
+            translateX: this.nextSegmentPosition[0],
+            translateY: this.nextSegmentPosition[1],
+            scale: 1,
+        });
+
+        let arrow = draw.line(
+            this.nextSegmentPosition[0],
+            this.nextSegmentPosition[1],
+            this.nextSegmentPosition[0] +
+                100 * Math.cos(this.nextSegmentRotation),
+            this.nextSegmentPosition[1] +
+                100 * Math.sin(this.nextSegmentRotation)
+        ).stroke({ color: 'blue', width: 5 });
+    }
+}
+
