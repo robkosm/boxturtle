@@ -10,6 +10,11 @@ let settings = {
     engraveDeepColor: "#0000FF",
     engraveShallowColor: "#FF00FF",
 
+    // dovetail joints
+    tailLength: 10,
+    tailWidth: 10,
+    taperRatio: .8,
+
     // box
     boxTopW: 150,
     boxTopH: 10,
@@ -25,7 +30,7 @@ let settings = {
     slitsPerRotation: 40,
 
     // buttons
-    useSettings: function () {
+    "apply settings": function () {
         console.log("new settings");
         console.log(settings.cutColor);
     },
@@ -39,6 +44,12 @@ function makeGUI() {
     cutSettingsFolder.addColor(settings, "engraveDeepColor");
     cutSettingsFolder.addColor(settings, "engraveShallowColor");
     cutSettingsFolder.open();
+
+    let jointSettingsFolder = gui.addFolder("Dovetail Joint Settings");
+    jointSettingsFolder.add(settings, "tailLength");
+    jointSettingsFolder.add(settings, "tailWidth");
+    jointSettingsFolder.add(settings, "taperRatio");
+    jointSettingsFolder.open();
 
     let boxSettingsFolder = gui.addFolder("Box Settings");
     boxSettingsFolder.add(settings, "boxTopW");
@@ -58,7 +69,7 @@ function makeGUI() {
     bendSettingsFolder.open();
 
     let buttonFolder = gui.addFolder("Buttons");
-    buttonFolder.add(settings, "useSettings");
+    buttonFolder.add(settings, "apply settings");
     buttonFolder.open();
 
     gui.open();
