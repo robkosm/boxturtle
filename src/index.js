@@ -23,6 +23,66 @@ class simpleSurfaceDrawer {
         this.xPosition = 0;
     }
 
+
+    drawLockingJoint(amplitude, width) {
+        let cutArray = [];
+        let scoreArray = []
+
+        for (let y = 0; y < this.height; y += width) {
+            // control1_x control1_y control2_x control2_y anchor_x anchor_y
+            const halfWidth = width / 2;
+
+            cutArray.push(amplitude + this.xPosition);
+            cutArray.push(y);
+            cutArray.push(amplitude + this.xPosition);
+            cutArray.push(y + halfWidth);
+            cutArray.push(0 + this.xPosition);
+            cutArray.push(y + halfWidth);
+            cutArray.push(0 + this.xPosition);
+            cutArray.push(y + width);
+            cutArray.push(amplitude + this.xPosition);
+            cutArray.push(y + width);
+
+
+            scoreArray.push(amplitude + this.xPosition);
+            scoreArray.push(y);
+            scoreArray.push(amplitude + this.xPosition);
+            scoreArray.push(y + halfWidth);
+            scoreArray.push(- amplitude + this.xPosition);
+            scoreArray.push(y + halfWidth);
+            scoreArray.push(- amplitude + this.xPosition);
+            scoreArray.push(y + width);
+            scoreArray.push(amplitude + this.xPosition);
+            scoreArray.push(y + width);
+
+
+
+            // bezierArray.push("C");
+            // bezierArray.push(-1);
+            // bezierArray.push(y + taperRatio);
+            // bezierArray.push(1);
+            // bezierArray.push(y + 1 - taperRatio);
+            // bezierArray.push(1);
+            // bezierArray.push(y + 1);
+
+            // bezierArray.push("C");
+            // bezierArray.push(1);
+            // bezierArray.push(y + 1 + taperRatio);
+            // bezierArray.push(-1);
+            // bezierArray.push(y + 2 - taperRatio);
+            // bezierArray.push(-1);
+            // bezierArray.push(y + 2);
+        }
+
+        let cutLine = draw.polyline(cutArray)
+        cutLine.fill("none");
+        cutLine.stroke({ color: this.cutColor, width: 1 });
+
+        let scoreLine = draw.polyline(scoreArray)
+        scoreLine.fill("none");
+        scoreLine.stroke({ color: this.engraveColor, width: 1 });
+    }
+
     drawBezierDovetailJoint(amplitude, width, taperRatio) {
         const taper = taperRatio * width;
 
@@ -121,20 +181,25 @@ class simpleSurfaceDrawer {
         //     arc.stroke({ color: this.cutColor, width: 1 })
         // }
 
-        this.drawBezierDovetailJoint(
-            this.tailLength,
-            this.tailWidth,
-            this.tailTaperRatio
-        );
+        // this.drawBezierDovetailJoint(
+        //     this.tailLength,
+        //     this.tailWidth,
+        //     this.tailTaperRatio
+        // );
+
+        this.drawLockingJoint(this.tailLength, this.tailWidth);
     }
 
     drawRightHalfFace() {
         this.xPosition += this.tailLength;
-        this.drawBezierDovetailJoint(
-            this.tailLength,
-            this.tailWidth,
-            this.tailTaperRatio
-        );
+        // this.drawBezierDovetailJoint(
+        //     this.tailLength,
+        //     this.tailWidth,
+        //     this.tailTaperRatio
+        // );
+
+        this.drawLockingJoint(this.tailLength, this.tailWidth);
+
         this.xPosition += this.sideLength / 2 - this.bendRadius;
     }
 
