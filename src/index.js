@@ -2,6 +2,123 @@ import { Polygon, SVG } from "@svgdotjs/svg.js";
 import * as dat from "dat.gui";
 import * as vec2 from "gl-vec2";
 
+class simpleFrustumDrawer {
+    constructor(settings) {
+        this.bottomRadius = settings.bottomRadius;
+        this.topRadius = settings.topRadius;
+        this.height = settings.boxHeight;
+        this.slits = settings.slitsPerRotation;
+
+        this.cutColor = settings.cutColor;
+        this.engraveColor = settings.engraveDeepColor;
+    }
+
+    drawBend() {
+        // http://www.hampsonlife.com/conecalculator.php
+        Math.TAU = 2 * Math.PI;
+
+        const b = this.bottomRadius - this.topRadius;
+        const hT = (this.height * this.bottomRadius) / b;
+        const rH = Math.sqrt(this.height * this.height + b * b);
+        const r = Math.sqrt(hT * hT + this.bottomRadius * this.bottomRadius);
+        const c = Math.TAU * this.bottomRadius;
+        const cT = Math.TAU * r;
+        const alpha = (Math.TAU * c) / cT;
+
+        const inner = draw.circle(2 * rH); //.translate(-r, -r)
+        inner.translate(r - rH, r - rH);
+        inner.fill("none");
+        inner.stroke({ color: this.engraveColor, width: 1 });
+
+        const outer = draw.circle(2 * r); //.translate(-rH, -rH)
+        outer.fill("none");
+        outer.stroke({ color: this.engraveColor, width: 1 });
+
+        for (let i = 0; i < this.slits; i++) {
+            const angle = (alpha * i) / this.slits;
+
+            const innerX = rH * Math.cos(angle);
+            const innerY = rH * Math.sin(angle);
+
+            const outerX = r * Math.cos(angle);
+            const outerY = r * Math.sin(angle);
+
+            // const c = draw.circle(10)
+            // c.translate(-5, -5)
+            // c.translate(r, r)
+            // c.translate(x, y)
+            // c.fill('none')
+            // c.stroke({ color: this.engraveColor, width: 1 })
+            const l = draw.line(innerX, innerY, outerX, outerY);
+            l.translate(r, r);
+            l.stroke({ color: this.engraveColor, width: 1 });
+        }
+    }
+
+    drawLockingJoint(amplitude, width, isRight) {
+        let cutArray = [];
+        let scoreArray = [];
+
+        for (let y = 0; y < this.height; y += width) {
+            // control1_x control1_y control2_x control2_y anchor_x anchor_y
+            const halfWidth = width / 2;
+            const sidewaysOffset = isRight ? 0 : -halfWidth / 2;
+
+            cutArray.push(sidewaysOffset + amplitude + this.xPosition);
+            cutArray.push(y);
+            cutArray.push(sidewaysOffset + amplitude + this.xPosition);
+            cutArray.push(y + halfWidth);
+            cutArray.push(sidewaysOffset + 0 + this.xPosition);
+            cutArray.push(y + halfWidth);
+            cutArray.push(sidewaysOffset + 0 + this.xPosition);
+            cutArray.push(y + width);
+            cutArray.push(sidewaysOffset + amplitude + this.xPosition);
+            cutArray.push(y + width);
+
+            scoreArray.push(amplitude + this.xPosition);
+            scoreArray.push(y);
+            scoreArray.push(amplitude + this.xPosition);
+            scoreArray.push(y + halfWidth);
+            scoreArray.push(-amplitude + this.xPosition);
+            scoreArray.push(y + halfWidth);
+            scoreArray.push(-amplitude + this.xPosition);
+            scoreArray.push(y + width);
+            scoreArray.push(amplitude + this.xPosition);
+            scoreArray.push(y + width);
+
+            // bezierArray.push("C");
+            // bezierArray.push(-1);
+            // bezierArray.push(y + taperRatio);
+            // bezierArray.push(1);
+            // bezierArray.push(y + 1 - taperRatio);
+            // bezierArray.push(1);
+            // bezierArray.push(y + 1);
+
+            // bezierArray.push("C");
+            // bezierArray.push(1);
+            // bezierArray.push(y + 1 + taperRatio);
+            // bezierArray.push(-1);
+            // bezierArray.push(y + 2 - taperRatio);
+            // bezierArray.push(-1);
+            // bezierArray.push(y + 2);
+        }
+
+        let scoreLine = draw.polyline(scoreArray);
+        scoreLine.fill("none");
+        scoreLine.stroke({ color: this.engraveColor, width: 1 });
+
+        let cutLine = draw.polyline(cutArray);
+        cutLine.fill("none");
+        cutLine.stroke({ color: this.cutColor, width: 1 });
+    }
+
+    drawSurface() {
+        //this.drawRightHalfFace();
+        this.drawBend();
+        //this.drawOutlines();
+    }
+}
+
 // extrusion of a square with equal rounded corners
 class simpleSurfaceDrawer {
     constructor(settings) {
@@ -23,15 +140,14 @@ class simpleSurfaceDrawer {
         this.xPosition = 0;
     }
 
-
     drawLockingJoint(amplitude, width, isRight) {
         let cutArray = [];
-        let scoreArray = []
+        let scoreArray = [];
 
         for (let y = 0; y < this.height; y += width) {
             // control1_x control1_y control2_x control2_y anchor_x anchor_y
             const halfWidth = width / 2;
-            const sidewaysOffset = isRight ? 0 : -halfWidth/2;
+            const sidewaysOffset = isRight ? 0 : -halfWidth / 2;
 
             cutArray.push(sidewaysOffset + amplitude + this.xPosition);
             cutArray.push(y);
@@ -44,19 +160,16 @@ class simpleSurfaceDrawer {
             cutArray.push(sidewaysOffset + amplitude + this.xPosition);
             cutArray.push(y + width);
 
-
             scoreArray.push(amplitude + this.xPosition);
             scoreArray.push(y);
             scoreArray.push(amplitude + this.xPosition);
             scoreArray.push(y + halfWidth);
-            scoreArray.push(- amplitude + this.xPosition);
+            scoreArray.push(-amplitude + this.xPosition);
             scoreArray.push(y + halfWidth);
-            scoreArray.push(- amplitude + this.xPosition);
+            scoreArray.push(-amplitude + this.xPosition);
             scoreArray.push(y + width);
             scoreArray.push(amplitude + this.xPosition);
             scoreArray.push(y + width);
-
-
 
             // bezierArray.push("C");
             // bezierArray.push(-1);
@@ -75,11 +188,11 @@ class simpleSurfaceDrawer {
             // bezierArray.push(y + 2);
         }
 
-        let scoreLine = draw.polyline(scoreArray)
+        let scoreLine = draw.polyline(scoreArray);
         scoreLine.fill("none");
         scoreLine.stroke({ color: this.engraveColor, width: 1 });
 
-        let cutLine = draw.polyline(cutArray)
+        let cutLine = draw.polyline(cutArray);
         cutLine.fill("none");
         cutLine.stroke({ color: this.cutColor, width: 1 });
     }
@@ -273,6 +386,9 @@ let settings = {
     engraveDeepColor: "#0000FF",
     engraveShallowColor: "#FF00FF",
 
+    //
+    shape: "prism",
+
     // dovetail joints
     tailLength: 10,
     tailWidth: 40,
@@ -295,13 +411,27 @@ let settings = {
     // buttons
     "apply settings": function () {
         draw.clear();
-        surfaceDrawer = new simpleSurfaceDrawer(settings);
+
+        switch (settings.shape) {
+            case "prism":
+                surfaceDrawer = new simpleSurfaceDrawer(settings);
+                break;
+            case "frustum":
+                surfaceDrawer = new simpleFrustumDrawer(settings);
+                break;
+            default:
+                surfaceDrawer = new simpleSurfaceDrawer(settings);
+        }
+
         surfaceDrawer.drawSurface();
     },
     "download svg": function () {
-        saveSvg(document.getElementById("svg").firstChild, "boxturtle_export.svg")
-    }
- };
+        saveSvg(
+            document.getElementById("svg").firstChild,
+            "boxturtle_export.svg"
+        );
+    },
+};
 
 let surfaceDrawer = new simpleSurfaceDrawer(settings);
 surfaceDrawer.drawSurface();
@@ -314,6 +444,8 @@ function makeGUI() {
     cutSettingsFolder.addColor(settings, "engraveDeepColor");
     cutSettingsFolder.addColor(settings, "engraveShallowColor");
     cutSettingsFolder.open();
+
+    gui.add(settings, "shape", { prism: "prism", frustum: "frustum" });
 
     let jointSettingsFolder = gui.addFolder("Dovetail Joint Settings");
     jointSettingsFolder.add(settings, "tailLength");
