@@ -24,23 +24,24 @@ class simpleSurfaceDrawer {
     }
 
 
-    drawLockingJoint(amplitude, width) {
+    drawLockingJoint(amplitude, width, isRight) {
         let cutArray = [];
         let scoreArray = []
 
         for (let y = 0; y < this.height; y += width) {
             // control1_x control1_y control2_x control2_y anchor_x anchor_y
             const halfWidth = width / 2;
+            const sidewaysOffset = isRight ? 0 : -halfWidth/2;
 
-            cutArray.push(amplitude + this.xPosition);
+            cutArray.push(sidewaysOffset + amplitude + this.xPosition);
             cutArray.push(y);
-            cutArray.push(amplitude + this.xPosition);
+            cutArray.push(sidewaysOffset + amplitude + this.xPosition);
             cutArray.push(y + halfWidth);
-            cutArray.push(0 + this.xPosition);
+            cutArray.push(sidewaysOffset + 0 + this.xPosition);
             cutArray.push(y + halfWidth);
-            cutArray.push(0 + this.xPosition);
+            cutArray.push(sidewaysOffset + 0 + this.xPosition);
             cutArray.push(y + width);
-            cutArray.push(amplitude + this.xPosition);
+            cutArray.push(sidewaysOffset + amplitude + this.xPosition);
             cutArray.push(y + width);
 
 
@@ -74,13 +75,13 @@ class simpleSurfaceDrawer {
             // bezierArray.push(y + 2);
         }
 
-        let cutLine = draw.polyline(cutArray)
-        cutLine.fill("none");
-        cutLine.stroke({ color: this.cutColor, width: 1 });
-
         let scoreLine = draw.polyline(scoreArray)
         scoreLine.fill("none");
         scoreLine.stroke({ color: this.engraveColor, width: 1 });
+
+        let cutLine = draw.polyline(cutArray)
+        cutLine.fill("none");
+        cutLine.stroke({ color: this.cutColor, width: 1 });
     }
 
     drawBezierDovetailJoint(amplitude, width, taperRatio) {
@@ -187,7 +188,7 @@ class simpleSurfaceDrawer {
         //     this.tailTaperRatio
         // );
 
-        this.drawLockingJoint(this.tailLength, this.tailWidth);
+        this.drawLockingJoint(this.tailLength, this.tailWidth, true);
     }
 
     drawRightHalfFace() {
@@ -198,7 +199,7 @@ class simpleSurfaceDrawer {
         //     this.tailTaperRatio
         // );
 
-        this.drawLockingJoint(this.tailLength, this.tailWidth);
+        this.drawLockingJoint(this.tailLength, this.tailWidth, false);
 
         this.xPosition += this.sideLength / 2 - this.bendRadius;
     }
